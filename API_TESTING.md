@@ -1,147 +1,218 @@
-# API Testing Guide
+# API Testing Guide - Postman with Render
 
-## Introduction to API Testing
+## Base URL
+**Production (Render):** `https://sprint1-backend-xxxx.onrender.com`
 
-API testing is the process of verifying that your API endpoints work correctly, return expected data, handle errors properly, and meet performance requirements. This guide covers testing the Sprint 1 Backend API.
+Replace `xxxx` with your actual Render app name. You can find this in your Render dashboard.
 
-## Why Test Your API?
+---
 
-- **Reliability**: Ensure endpoints work as expected
-- **Catch Bugs Early**: Find issues before users do
-- **Documentation**: Tests serve as living documentation
-- **Confidence**: Make changes without breaking existing functionality
-- **Quality Assurance**: Verify data validation and error handling
+## Setup in Postman
 
-## Testing Tools Overview
+### 1. Create New Collection
+1. Open Postman
+2. Click **Collections** in left sidebar
+3. Click **+ Create new collection**
+4. Name it: `Sprint 1 Backend API - Render`
 
-### 1. cURL (Command Line)
-- Built into most operating systems
-- Great for quick tests and automation
-- No installation needed
+### 2. Set Environment Variables
+1. Click **Environments** (top right)
+2. Click **+ Create Environment**
+3. Name it: `Sprint 1 Production`
+4. Add variable:
+   - **Variable:** `base_url`
+   - **Initial Value:** `https://sprint1-backend-xxxx.onrender.com` (replace with your URL)
+   - **Current Value:** `https://sprint1-backend-xxxx.onrender.com`
+5. Click **Save**
+6. Select this environment from dropdown (top right)
 
-### 2. Postman
-- Popular GUI-based API testing tool
-- Supports collections and environment variables
-- Great for team collaboration
+---
 
-### 3. Thunder Client (VS Code Extension)
-- Lightweight alternative to Postman
-- Integrated into VS Code
-- Simple and fast
+## All API Tests for Postman
 
-### 4. REST Client (VS Code Extension)
-- Test APIs directly from `.http` files
-- Version control friendly
-- Simple syntax
+### 🏥 Health Check Endpoints
 
-### 5. Automated Testing (Jest/Supertest)
-- Write programmatic tests
-- Run in CI/CD pipelines
-- Best for continuous testing
+#### 1. Welcome Message
+- **Method:** `GET`
+- **URL:** `{{base_url}}/`
+- **Description:** Check if API is running
+- **Expected Status:** `200 OK`
 
-## Testing with cURL
-
-### Basic cURL Syntax
-
-```bash
-curl [options] [URL]
+**Expected Response:**
+```json
+{
+  "message": "Welcome to Sprint 1 Backend API",
+  "version": "1.0.0",
+  "endpoints": {
+    "tasks": "/api/tasks",
+    "users": "/api/users",
+    "categories": "/api/categories"
+  }
+}
 ```
 
-### Common Options:
-- `-X` : Specify HTTP method (GET, POST, PUT, DELETE)
-- `-H` : Add headers
-- `-d` : Send data in request body
-- `-i` : Include response headers
-- `-v` : Verbose output (detailed)
+#### 2. Health Check
+- **Method:** `GET`
+- **URL:** `{{base_url}}/health`
+- **Description:** Verify server health
+- **Expected Status:** `200 OK`
 
-### Testing All Endpoints
-
-#### Health Check & Welcome
-```bash
-# Welcome message
-curl http://localhost:3000/
-
-# Health check
-curl http://localhost:3000/health
+**Expected Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-02-05T15:30:00.000Z",
+  "uptime": 123.45,
+  "database": "connected"
+}
 ```
 
 ---
 
-### Users Endpoints
+## 👤 USER ENDPOINTS
 
-#### 1. Get All Users
-```bash
-curl http://localhost:3000/api/users
-```
+### 1. Get All Users
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/users`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
 
-**Expected Response (200 OK):**
+**Expected Response:**
 ```json
 [
   {
     "id": 1,
     "username": "john_doe",
     "email": "john@example.com",
-    "created_at": "2026-02-05T12:00:00.000Z"
+    "created_at": "2026-02-05T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "username": "jane_smith",
+    "email": "jane@example.com",
+    "created_at": "2026-02-05T10:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "username": "bob_wilson",
+    "email": "bob@example.com",
+    "created_at": "2026-02-05T10:00:00.000Z"
   }
 ]
 ```
 
-#### 2. Get Specific User
-```bash
-curl http://localhost:3000/api/users/1
-```
+---
 
-**Expected Response (200 OK):**
+### 2. Get Specific User by ID
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/users/1`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
 ```json
 {
   "id": 1,
   "username": "john_doe",
   "email": "john@example.com",
-  "created_at": "2026-02-05T12:00:00.000Z"
+  "created_at": "2026-02-05T10:00:00.000Z"
 }
 ```
 
-#### 3. Get User with Tasks
-```bash
-curl http://localhost:3000/api/users/1/tasks
+---
+
+### 3. Get User with Their Tasks
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/users/1/tasks`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+{
+  "id": 1,
+  "username": "john_doe",
+  "email": "john@example.com",
+  "created_at": "2026-02-05T10:00:00.000Z",
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Complete project proposal",
+      "description": "Write and submit the Q1 project proposal",
+      "status": "in_progress",
+      "priority": "high",
+      "due_date": "2026-02-10",
+      "category_name": "Work"
+    }
+  ]
+}
 ```
 
-#### 4. Create New User
-```bash
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "test_user",
-    "email": "test@example.com"
-  }'
-```
+---
 
-**Expected Response (201 Created):**
+### 4. Create New User
+- **Method:** `POST`
+- **URL:** `{{base_url}}/api/users`
+- **Headers:** 
+  - `Content-Type: application/json`
+- **Body (raw JSON):**
+```json
+{
+  "username": "postman_user",
+  "email": "postman@test.com"
+}
+```
+- **Expected Status:** `201 Created`
+
+**Expected Response:**
 ```json
 {
   "id": 4,
-  "username": "test_user",
-  "email": "test@example.com",
-  "created_at": "2026-02-05T14:30:00.000Z"
+  "username": "postman_user",
+  "email": "postman@test.com",
+  "created_at": "2026-02-05T15:45:00.000Z"
 }
 ```
 
-#### 5. Update User
-```bash
-curl -X PUT http://localhost:3000/api/users/4 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "updated_user",
-    "email": "updated@example.com"
-  }'
+---
+
+### 5. Update User
+- **Method:** `PUT`
+- **URL:** `{{base_url}}/api/users/4`
+- **Headers:** 
+  - `Content-Type: application/json`
+- **Body (raw JSON):**
+```json
+{
+  "username": "updated_postman_user",
+  "email": "updated_postman@test.com"
+}
+```
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+{
+  "id": 4,
+  "username": "updated_postman_user",
+  "email": "updated_postman@test.com",
+  "created_at": "2026-02-05T15:45:00.000Z"
+}
 ```
 
-#### 6. Delete User
-```bash
-curl -X DELETE http://localhost:3000/api/users/4
-```
+---
 
-**Expected Response (200 OK):**
+### 6. Delete User
+- **Method:** `DELETE`
+- **URL:** `{{base_url}}/api/users/4`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
 ```json
 {
   "message": "User deleted successfully"
@@ -150,647 +221,557 @@ curl -X DELETE http://localhost:3000/api/users/4
 
 ---
 
-### Categories Endpoints
+## 📋 TASK ENDPOINTS
 
-#### 1. Get All Categories
-```bash
-curl http://localhost:3000/api/categories
-```
+### 1. Get All Tasks
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/tasks`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
 
-#### 2. Get Category with Task Counts
-```bash
-curl http://localhost:3000/api/categories/counts
-```
-
-#### 3. Get Specific Category
-```bash
-curl http://localhost:3000/api/categories/1
-```
-
-#### 4. Create New Category
-```bash
-curl -X POST http://localhost:3000/api/categories \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Testing",
-    "description": "Quality assurance and testing tasks"
-  }'
-```
-
-#### 5. Update Category
-```bash
-curl -X PUT http://localhost:3000/api/categories/4 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "QA Testing",
-    "description": "Updated description"
-  }'
-```
-
-#### 6. Delete Category
-```bash
-curl -X DELETE http://localhost:3000/api/categories/4
+**Expected Response:**
+```json
+[
+  {
+    "id": 1,
+    "title": "Complete project proposal",
+    "description": "Write and submit the Q1 project proposal",
+    "status": "in_progress",
+    "priority": "high",
+    "user_id": 1,
+    "category_id": 1,
+    "due_date": "2026-02-10",
+    "created_at": "2026-02-05T10:00:00.000Z",
+    "updated_at": "2026-02-05T10:00:00.000Z",
+    "username": "john_doe",
+    "category_name": "Work"
+  }
+]
 ```
 
 ---
 
-### Tasks Endpoints
-
-#### 1. Get All Tasks
-```bash
-curl http://localhost:3000/api/tasks
-```
-
-#### 2. Get Task Statistics
-```bash
-curl http://localhost:3000/api/tasks/stats
-```
+### 2. Get Task Statistics
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/tasks/stats`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
 
 **Expected Response:**
 ```json
 {
   "total": 10,
   "by_status": {
-    "pending": 4,
-    "in_progress": 3,
+    "pending": 5,
+    "in_progress": 2,
     "completed": 3
   },
   "by_priority": {
-    "high": 3,
-    "medium": 4,
-    "low": 3
+    "low": 1,
+    "medium": 5,
+    "high": 4
   }
 }
 ```
 
-#### 3. Get Specific Task
-```bash
-curl http://localhost:3000/api/tasks/1
-```
+---
 
-#### 4. Create New Task
-```bash
-curl -X POST http://localhost:3000/api/tasks \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Write API Tests",
-    "description": "Create comprehensive API testing guide",
-    "status": "in_progress",
-    "priority": "high",
-    "user_id": 1,
-    "category_id": 2,
-    "due_date": "2026-02-10"
-  }'
-```
+### 3. Get Specific Task by ID
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/tasks/1`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
 
-**Expected Response (201 Created):**
+**Expected Response:**
 ```json
 {
-  "id": 11,
-  "title": "Write API Tests",
-  "description": "Create comprehensive API testing guide",
+  "id": 1,
+  "title": "Complete project proposal",
+  "description": "Write and submit the Q1 project proposal",
   "status": "in_progress",
   "priority": "high",
   "user_id": 1,
-  "category_id": 2,
-  "due_date": "2026-02-10",
-  "created_at": "2026-02-05T14:45:00.000Z",
-  "updated_at": "2026-02-05T14:45:00.000Z"
-}
-```
-
-#### 5. Update Task
-```bash
-curl -X PUT http://localhost:3000/api/tasks/11 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Complete API Tests",
-    "status": "completed",
-    "priority": "high"
-  }'
-```
-
-#### 6. Delete Task
-```bash
-curl -X DELETE http://localhost:3000/api/tasks/11
-```
-
----
-
-## Testing with Postman
-
-### Setup
-
-1. Download and install [Postman](https://www.postman.com/downloads/)
-2. Create a new Collection: "Sprint 1 Backend API"
-3. Set up environment variables
-
-### Environment Variables
-
-Create a new environment with:
-- `base_url`: `http://localhost:3000`
-- `api_url`: `{{base_url}}/api`
-
-For production:
-- `base_url`: `https://your-app.onrender.com`
-
-### Creating Requests
-
-#### Example: Get All Tasks
-
-1. **Method**: GET
-2. **URL**: `{{api_url}}/tasks`
-3. **Headers**: None needed
-4. Click **Send**
-
-#### Example: Create New Task
-
-1. **Method**: POST
-2. **URL**: `{{api_url}}/tasks`
-3. **Headers**: 
-   - Key: `Content-Type`
-   - Value: `application/json`
-4. **Body** (raw JSON):
-```json
-{
-  "title": "New Task from Postman",
-  "description": "Testing POST endpoint",
-  "status": "pending",
-  "priority": "medium",
-  "user_id": 1,
   "category_id": 1,
-  "due_date": "2026-02-15"
+  "due_date": "2026-02-10",
+  "created_at": "2026-02-05T10:00:00.000Z",
+  "updated_at": "2026-02-05T10:00:00.000Z",
+  "username": "john_doe",
+  "user_email": "john@example.com",
+  "category_name": "Work",
+  "category_description": "Work-related tasks"
 }
-```
-5. Click **Send**
-
-### Postman Tests (Scripts)
-
-Add test scripts in the "Tests" tab:
-
-```javascript
-// Test status code
-pm.test("Status code is 200", function () {
-    pm.response.to.have.status(200);
-});
-
-// Test response time
-pm.test("Response time is less than 500ms", function () {
-    pm.expect(pm.response.responseTime).to.be.below(500);
-});
-
-// Test response structure
-pm.test("Response has correct structure", function () {
-    var jsonData = pm.response.json();
-    pm.expect(jsonData).to.be.an('array');
-    pm.expect(jsonData[0]).to.have.property('id');
-    pm.expect(jsonData[0]).to.have.property('title');
-});
-
-// Save data for next request
-pm.test("Save task ID", function () {
-    var jsonData = pm.response.json();
-    pm.environment.set("task_id", jsonData.id);
-});
 ```
 
 ---
 
-## Testing with Thunder Client (VS Code)
-
-### Setup
-
-1. Install Thunder Client extension in VS Code
-2. Click Thunder Client icon in sidebar
-3. Create new request
-
-### Creating a Collection
-
-1. Click "Collections"
-2. Click "New Collection"
-3. Name it "Sprint 1 API"
-4. Add requests to collection
-
-### Environment Setup
-
-1. Click "Env" tab
-2. Create new environment
-3. Add variables:
+### 4. Create New Task
+- **Method:** `POST`
+- **URL:** `{{base_url}}/api/tasks`
+- **Headers:** 
+  - `Content-Type: application/json`
+- **Body (raw JSON):**
 ```json
 {
-  "base_url": "http://localhost:3000",
-  "api_url": "{{base_url}}/api"
-}
-```
-
-### Example Request
-
-**Get All Users:**
-- Method: `GET`
-- URL: `{{api_url}}/users`
-- Click "Send"
-
----
-
-## Testing with REST Client (.http files)
-
-### Setup
-
-1. Install "REST Client" extension in VS Code
-2. Create `api-tests.http` file in your project
-
-### Example .http File
-
-```http
-### Variables
-@base_url = http://localhost:3000
-@api_url = {{base_url}}/api
-
-### Health Check
-GET {{base_url}}/health
-
-### Get All Users
-GET {{api_url}}/users
-
-### Get Specific User
-GET {{api_url}}/users/1
-
-### Create New User
-POST {{api_url}}/users
-Content-Type: application/json
-
-{
-  "username": "rest_client_user",
-  "email": "rest@example.com"
-}
-
-### Get All Tasks
-GET {{api_url}}/tasks
-
-### Create New Task
-POST {{api_url}}/tasks
-Content-Type: application/json
-
-{
-  "title": "Task from REST Client",
-  "description": "Testing with .http file",
+  "title": "API Testing Task",
+  "description": "Testing task creation from Postman",
   "status": "pending",
-  "priority": "low",
+  "priority": "high",
   "user_id": 1,
   "category_id": 1,
   "due_date": "2026-02-20"
 }
+```
+- **Expected Status:** `201 Created`
 
-### Update Task
-PUT {{api_url}}/tasks/1
-Content-Type: application/json
-
+**Expected Response:**
+```json
 {
-  "status": "completed"
-}
-
-### Delete Task
-DELETE {{api_url}}/tasks/10
-
-### Get All Categories
-GET {{api_url}}/categories
-
-### Create Category
-POST {{api_url}}/categories
-Content-Type: application/json
-
-{
-  "name": "Research",
-  "description": "Research and analysis tasks"
+  "id": 11,
+  "title": "API Testing Task",
+  "description": "Testing task creation from Postman",
+  "status": "pending",
+  "priority": "high",
+  "user_id": 1,
+  "category_id": 1,
+  "due_date": "2026-02-20",
+  "created_at": "2026-02-05T16:00:00.000Z",
+  "updated_at": "2026-02-05T16:00:00.000Z"
 }
 ```
-
-**Usage**: Click "Send Request" link above each request
 
 ---
 
-## Automated Testing with Jest & Supertest
-
-### Setup
-
-```bash
-npm install --save-dev jest supertest
-```
-
-### Update package.json
-
+### 5. Update Task
+- **Method:** `PUT`
+- **URL:** `{{base_url}}/api/tasks/11`
+- **Headers:** 
+  - `Content-Type: application/json`
+- **Body (raw JSON):**
 ```json
 {
-  "scripts": {
-    "test": "jest --watchAll"
-  },
-  "jest": {
-    "testEnvironment": "node"
-  }
+  "title": "Updated API Testing Task",
+  "status": "in_progress",
+  "priority": "medium"
+}
+```
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+{
+  "id": 11,
+  "title": "Updated API Testing Task",
+  "description": "Testing task creation from Postman",
+  "status": "in_progress",
+  "priority": "medium",
+  "user_id": 1,
+  "category_id": 1,
+  "due_date": "2026-02-20",
+  "created_at": "2026-02-05T16:00:00.000Z",
+  "updated_at": "2026-02-05T16:05:00.000Z"
 }
 ```
 
-### Create Test File: `__tests__/api.test.js`
+---
 
+### 6. Delete Task
+- **Method:** `DELETE`
+- **URL:** `{{base_url}}/api/tasks/11`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+{
+  "message": "Task deleted successfully"
+}
+```
+
+---
+
+## 📁 CATEGORY ENDPOINTS
+
+### 1. Get All Categories
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/categories`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Work",
+    "description": "Work-related tasks",
+    "created_at": "2026-02-05T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Personal",
+    "description": "Personal tasks and errands",
+    "created_at": "2026-02-05T10:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "name": "Study",
+    "description": "Educational and learning tasks",
+    "created_at": "2026-02-05T10:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "name": "Health",
+    "description": "Health and fitness related tasks",
+    "created_at": "2026-02-05T10:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "name": "Shopping",
+    "description": "Shopping and purchasing tasks",
+    "created_at": "2026-02-05T10:00:00.000Z"
+  }
+]
+```
+
+---
+
+### 2. Get Categories with Task Counts
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/categories/counts`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Work",
+    "description": "Work-related tasks",
+    "created_at": "2026-02-05T10:00:00.000Z",
+    "task_count": "4"
+  },
+  {
+    "id": 2,
+    "name": "Personal",
+    "description": "Personal tasks and errands",
+    "created_at": "2026-02-05T10:00:00.000Z",
+    "task_count": "1"
+  }
+]
+```
+
+---
+
+### 3. Get Specific Category by ID
+- **Method:** `GET`
+- **URL:** `{{base_url}}/api/categories/1`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+{
+  "id": 1,
+  "name": "Work",
+  "description": "Work-related tasks",
+  "created_at": "2026-02-05T10:00:00.000Z"
+}
+```
+
+---
+
+### 4. Create New Category
+- **Method:** `POST`
+- **URL:** `{{base_url}}/api/categories`
+- **Headers:** 
+  - `Content-Type: application/json`
+- **Body (raw JSON):**
+```json
+{
+  "name": "Testing",
+  "description": "Quality assurance and testing tasks"
+}
+```
+- **Expected Status:** `201 Created`
+
+**Expected Response:**
+```json
+{
+  "id": 6,
+  "name": "Testing",
+  "description": "Quality assurance and testing tasks",
+  "created_at": "2026-02-05T16:15:00.000Z"
+}
+```
+
+---
+
+### 5. Update Category
+- **Method:** `PUT`
+- **URL:** `{{base_url}}/api/categories/6`
+- **Headers:** 
+  - `Content-Type: application/json`
+- **Body (raw JSON):**
+```json
+{
+  "name": "QA Testing",
+  "description": "Updated: Quality assurance and testing tasks"
+}
+```
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+{
+  "id": 6,
+  "name": "QA Testing",
+  "description": "Updated: Quality assurance and testing tasks",
+  "created_at": "2026-02-05T16:15:00.000Z"
+}
+```
+
+---
+
+### 6. Delete Category
+- **Method:** `DELETE`
+- **URL:** `{{base_url}}/api/categories/6`
+- **Headers:** None
+- **Body:** None
+- **Expected Status:** `200 OK`
+
+**Expected Response:**
+```json
+{
+  "message": "Category deleted successfully"
+}
+```
+
+---
+
+## 🧪 Testing Scenarios
+
+### Scenario 1: Complete Task Workflow
+
+**Step 1:** Create a new user
+```
+POST {{base_url}}/api/users
+Body: {"username": "workflow_test", "email": "workflow@test.com"}
+```
+
+**Step 2:** Get all categories (to find a category_id)
+```
+GET {{base_url}}/api/categories
+```
+
+**Step 3:** Create a task for the new user
+```
+POST {{base_url}}/api/tasks
+Body: {
+  "title": "Workflow Test Task",
+  "description": "Testing complete workflow",
+  "status": "pending",
+  "priority": "high",
+  "user_id": 4,
+  "category_id": 1,
+  "due_date": "2026-02-25"
+}
+```
+
+**Step 4:** Get user with their tasks
+```
+GET {{base_url}}/api/users/4/tasks
+```
+
+**Step 5:** Update task status to completed
+```
+PUT {{base_url}}/api/tasks/11
+Body: {"status": "completed"}
+```
+
+**Step 6:** Get task statistics
+```
+GET {{base_url}}/api/tasks/stats
+```
+
+---
+
+### Scenario 2: Error Testing
+
+**Test 1:** Get non-existent user
+```
+GET {{base_url}}/api/users/99999
+Expected: 404 Not Found
+```
+
+**Test 2:** Create user with missing email
+```
+POST {{base_url}}/api/users
+Body: {"username": "incomplete_user"}
+Expected: 400 Bad Request
+```
+
+**Test 3:** Create task with invalid user_id
+```
+POST {{base_url}}/api/tasks
+Body: {
+  "title": "Invalid Task",
+  "status": "pending",
+  "priority": "high",
+  "user_id": 99999,
+  "category_id": 1
+}
+Expected: 400/500 error
+```
+
+**Test 4:** Delete non-existent category
+```
+DELETE {{base_url}}/api/categories/99999
+Expected: 404 Not Found
+```
+
+---
+
+## 📊 Postman Test Scripts
+
+Add these scripts in the **Tests** tab of your requests:
+
+### For GET All Requests:
 ```javascript
-const request = require('supertest');
-const app = require('../server');
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
 
-describe('API Endpoints', () => {
-  
-  describe('GET /health', () => {
-    it('should return health status', async () => {
-      const res = await request(app).get('/health');
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('status', 'healthy');
-    });
-  });
+pm.test("Response is an array", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData).to.be.an('array');
+});
 
-  describe('Users API', () => {
-    it('should get all users', async () => {
-      const res = await request(app).get('/api/users');
-      expect(res.statusCode).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-    });
-
-    it('should create a new user', async () => {
-      const newUser = {
-        username: 'test_jest_user',
-        email: 'jest@test.com'
-      };
-      const res = await request(app)
-        .post('/api/users')
-        .send(newUser);
-      expect(res.statusCode).toBe(201);
-      expect(res.body).toHaveProperty('username', newUser.username);
-      expect(res.body).toHaveProperty('email', newUser.email);
-    });
-
-    it('should get a specific user', async () => {
-      const res = await request(app).get('/api/users/1');
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('id', 1);
-    });
-  });
-
-  describe('Tasks API', () => {
-    it('should get all tasks', async () => {
-      const res = await request(app).get('/api/tasks');
-      expect(res.statusCode).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-    });
-
-    it('should get task statistics', async () => {
-      const res = await request(app).get('/api/tasks/stats');
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('total');
-      expect(res.body).toHaveProperty('by_status');
-      expect(res.body).toHaveProperty('by_priority');
-    });
-
-    it('should create a new task', async () => {
-      const newTask = {
-        title: 'Jest Test Task',
-        description: 'Created by automated test',
-        status: 'pending',
-        priority: 'low',
-        user_id: 1,
-        category_id: 1,
-        due_date: '2026-03-01'
-      };
-      const res = await request(app)
-        .post('/api/tasks')
-        .send(newTask);
-      expect(res.statusCode).toBe(201);
-      expect(res.body).toHaveProperty('title', newTask.title);
-    });
-  });
-
-  describe('Categories API', () => {
-    it('should get all categories', async () => {
-      const res = await request(app).get('/api/categories');
-      expect(res.statusCode).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-    });
-  });
+pm.test("Response time is acceptable", function () {
+    pm.expect(pm.response.responseTime).to.be.below(2000);
 });
 ```
 
-### Run Tests
+### For POST (Create) Requests:
+```javascript
+pm.test("Status code is 201", function () {
+    pm.response.to.have.status(201);
+});
 
-```bash
-npm test
+pm.test("Response has ID", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData).to.have.property('id');
+});
+
+// Save ID for later use
+pm.test("Save created ID", function () {
+    var jsonData = pm.response.json();
+    pm.environment.set("created_id", jsonData.id);
+});
+```
+
+### For PUT (Update) Requests:
+```javascript
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Response has updated data", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData).to.have.property('id');
+});
+```
+
+### For DELETE Requests:
+```javascript
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Success message received", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData).to.have.property('message');
+});
 ```
 
 ---
 
-## Testing Checklist
+## ✅ Testing Checklist
 
-### Before Testing
-- [ ] Server is running (`npm start`)
-- [ ] Database is initialized (`npm run init-db`)
-- [ ] Environment variables are set
-- [ ] You know the base URL (local or production)
+Before testing:
+- [ ] Server is deployed on Render
+- [ ] Database is initialized with sample data
+- [ ] Environment variable is set in Postman
+- [ ] Base URL is correct
 
-### What to Test
+Test all endpoints:
+- [ ] Health check works
+- [ ] Get all users (3 users)
+- [ ] Get all tasks (10 tasks)
+- [ ] Get all categories (5 categories)
+- [ ] Create new user
+- [ ] Create new task
+- [ ] Create new category
+- [ ] Update user
+- [ ] Update task
+- [ ] Update category
+- [ ] Delete user
+- [ ] Delete task
+- [ ] Delete category
+- [ ] Get task statistics
+- [ ] Get user with tasks
+- [ ] Get categories with counts
 
-#### ✅ Happy Paths (Success Cases)
-- [ ] GET all resources returns 200 and array
-- [ ] GET specific resource returns 200 and object
-- [ ] POST creates resource and returns 201
-- [ ] PUT updates resource and returns 200
-- [ ] DELETE removes resource and returns 200
-
-#### ✅ Error Cases
-- [ ] GET non-existent resource returns 404
-- [ ] POST with missing fields returns 400
-- [ ] POST with invalid data returns 400
-- [ ] PUT non-existent resource returns 404
-- [ ] DELETE non-existent resource returns 404
-
-#### ✅ Validation
-- [ ] Email format is validated
-- [ ] Username is unique
-- [ ] Required fields are enforced
-- [ ] Date formats are correct
-- [ ] Foreign keys are validated
-
-#### ✅ Relationships
-- [ ] Tasks include user and category info
-- [ ] Users can have multiple tasks
-- [ ] Categories can have multiple tasks
-- [ ] Deleting user doesn't break tasks (or cascades)
-
-#### ✅ Special Endpoints
-- [ ] Health check returns status
-- [ ] Statistics endpoint returns correct counts
-- [ ] Task filtering works correctly
+Error testing:
+- [ ] Test 404 errors (non-existent IDs)
+- [ ] Test 400 errors (missing required fields)
+- [ ] Test validation errors
 
 ---
 
-## Common Testing Scenarios
+## 🚀 Quick Testing Tips
 
-### Scenario 1: Test Complete CRUD Flow
-
-```bash
-# 1. Create
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{"username": "crud_test", "email": "crud@test.com"}'
-# Note the returned ID (e.g., 5)
-
-# 2. Read
-curl http://localhost:3000/api/users/5
-
-# 3. Update
-curl -X PUT http://localhost:3000/api/users/5 \
-  -H "Content-Type: application/json" \
-  -d '{"username": "updated_crud", "email": "updated@test.com"}'
-
-# 4. Delete
-curl -X DELETE http://localhost:3000/api/users/5
-
-# 5. Verify deletion
-curl http://localhost:3000/api/users/5
-# Should return 404
-```
-
-### Scenario 2: Test Error Handling
-
-```bash
-# Missing required field
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{"username": "test"}'
-# Should return 400 Bad Request
-
-# Invalid ID
-curl http://localhost:3000/api/users/99999
-# Should return 404 Not Found
-
-# Duplicate username
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{"username": "john_doe", "email": "new@email.com"}'
-# Should return 400 or 409 Conflict
-```
-
-### Scenario 3: Test Relationships
-
-```bash
-# Create task with user and category
-curl -X POST http://localhost:3000/api/tasks \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Relationship Test",
-    "description": "Testing foreign keys",
-    "status": "pending",
-    "priority": "medium",
-    "user_id": 1,
-    "category_id": 1,
-    "due_date": "2026-02-15"
-  }'
-
-# Get user with their tasks
-curl http://localhost:3000/api/users/1/tasks
-
-# Get categories with task counts
-curl http://localhost:3000/api/categories/counts
-```
+1. **Start with Health Check** - Always verify server is running first
+2. **Test GET before POST** - Understand existing data before creating new
+3. **Save IDs** - Use Postman variables to save created IDs
+4. **Test in Order** - Create → Read → Update → Delete
+5. **Check Response Times** - Render free tier may have slow cold starts
+6. **Document Errors** - Note any unexpected behaviors
+7. **Use Collections** - Organize tests by resource type
 
 ---
 
-## Testing Production (Render)
+## 📝 Notes
 
-Replace `localhost:3000` with your Render URL:
-
-```bash
-# Set your Render URL
-RENDER_URL="https://sprint1-backend-xxxx.onrender.com"
-
-# Test health
-curl $RENDER_URL/health
-
-# Test endpoints
-curl $RENDER_URL/api/tasks
-curl $RENDER_URL/api/users
-curl $RENDER_URL/api/categories
-```
+- **Render Cold Starts:** First request may take 30-60 seconds if service was asleep
+- **Free Tier Limits:** Render free tier has limited resources
+- **Database Persistence:** Data persists between requests on Render
+- **CORS:** Already configured for web requests
+- **Status Codes:** 
+  - `200` = Success (GET, PUT, DELETE)
+  - `201` = Created (POST)
+  - `400` = Bad Request
+  - `404` = Not Found
+  - `500` = Server Error
 
 ---
 
-## Tips for Effective API Testing
+## Need Help?
 
-### 1. Test Systematically
-- Start with health check
-- Test GET endpoints first
-- Then test POST, PUT, DELETE
-- Test error cases last
-
-### 2. Use Proper Tools
-- cURL for quick tests
-- Postman for collections
-- Automated tests for CI/CD
-
-### 3. Document Your Tests
-- Keep .http files in version control
-- Share Postman collections with team
-- Write test documentation
-
-### 4. Test Early and Often
-- Test after each feature
-- Test before commits
-- Test before deployment
-
-### 5. Verify Both Success and Failure
-- Don't just test happy paths
-- Verify error messages
-- Check status codes
+If endpoints don't work:
+1. Check Render dashboard for service status
+2. View application logs in Render
+3. Verify database connection
+4. Ensure environment variables are set
+5. Try re-deploying the service
 
 ---
 
-## Troubleshooting
-
-### Connection Refused
-**Problem**: `curl: (7) Failed to connect to localhost port 3000`
-**Solution**: Make sure server is running with `npm start`
-
-### 404 Not Found
-**Problem**: All endpoints return 404
-**Solution**: Check if routes are properly registered in `server.js`
-
-### 500 Internal Server Error
-**Problem**: Endpoints return 500
-**Solution**: Check server logs and database connection
-
-### Empty Response
-**Problem**: Endpoints return empty arrays
-**Solution**: Check if database is initialized with `npm run init-db`
-
-### CORS Errors (Browser)
-**Problem**: Browser shows CORS error
-**Solution**: Ensure CORS middleware is configured in server
-
----
-
-## Summary
-
-**Key Takeaways**:
-1. Test all CRUD operations
-2. Verify both success and error cases
-3. Use appropriate tools for the job
-4. Automate tests when possible
-5. Document your testing process
-6. Test before every deployment
-
-**Remember**: Good testing prevents bugs and builds confidence in your API!
-
----
-
-## Additional Resources
-
-- [HTTP Status Codes](https://httpstatuses.com/)
-- [REST API Best Practices](https://restfulapi.net/)
-- [Postman Learning Center](https://learning.postman.com/)
-- [Jest Documentation](https://jestjs.io/docs/getting-started)
-- [Supertest Documentation](https://github.com/visionmedia/supertest)
+**Happy Testing! 🎉**
