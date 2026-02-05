@@ -1,0 +1,158 @@
+PROG2500-26W-Sec1 - Open-Source Full Stack Development
+Sprint 1 Submission
+
+Student Name: Dilraj Singh
+Student ID: [Your Student ID]
+Submission Date: February 5, 2026
+
+================================================================================
+PROJECT LINKS
+================================================================================
+
+GitHub Repository URL: [Your GitHub Repository URL]
+Example: https://github.com/yourusername/sprint1-backend
+
+Live Deployment URL: [Your Render Deployment URL]
+Example: https://sprint1-backend-xxxx.onrender.com
+
+================================================================================
+COMPLETED WORKSHOPS
+================================================================================
+
+Sprint 1 includes the following workshops from Weeks 2 and 3:
+✅ Week 2: Node.js Setup & Express Basics
+✅ Week 3: Database Integration with PostgreSQL
+
+================================================================================
+PROJECT OVERVIEW
+================================================================================
+
+This is a RESTful API backend built with:
+- Node.js & Express.js
+- PostgreSQL Database
+- Deployed on Render
+
+Features:
+- Complete CRUD operations for Tasks, Users, and Categories
+- RESTful API design
+- PostgreSQL database with relationships
+- Error handling and validation
+- CORS enabled for frontend integration
+- Environment-based configuration
+- Deployed to live public URL
+
+================================================================================
+API ENDPOINTS
+================================================================================
+
+Base URL: [Your Render URL]/api
+
+Tasks:
+- GET    /tasks              - Get all tasks
+- GET    /tasks/stats        - Get statistics
+- GET    /tasks/:id          - Get specific task
+- POST   /tasks              - Create task
+- PUT    /tasks/:id          - Update task
+- DELETE /tasks/:id          - Delete task
+
+Users:
+- GET    /users              - Get all users
+- GET    /users/:id          - Get specific user
+- GET    /users/:id/tasks    - Get user with tasks
+- POST   /users              - Create user
+- PUT    /users/:id          - Update user
+- DELETE /users/:id          - Delete user
+
+Categories:
+- GET    /categories         - Get all categories
+- GET    /categories/counts  - Get with task counts
+- GET    /categories/:id     - Get specific category
+- POST   /categories         - Create category
+- PUT    /categories/:id     - Update category
+- DELETE /categories/:id     - Delete category
+
+================================================================================
+DATABASE SCHEMA
+================================================================================
+
+Users Table:
+- id (Primary Key)
+- username (Unique)
+- email (Unique)
+- created_at
+
+Categories Table:
+- id (Primary Key)
+- name
+- description
+- created_at
+
+Tasks Table:
+- id (Primary Key)
+- title
+- description
+- status (pending/in_progress/completed)
+- priority (low/medium/high)
+- user_id (Foreign Key → users)
+- category_id (Foreign Key → categories)
+- due_date
+- created_at
+- updated_at
+
+================================================================================
+TECHNICAL QUESTIONS - PREPARATION
+================================================================================
+
+Q: Where did you define your routes?
+A: Routes are defined in the /routes directory:
+   - taskRoutes.js
+   - userRoutes.js
+   - categoryRoutes.js
+   These are imported and used in server.js
+
+Q: How does the database connection work?
+A: Database connection is configured in /config/database.js using the pg Pool
+   The connection string is stored in environment variable DATABASE_URL
+
+Q: What middleware are you using?
+A: - express.json() for parsing JSON request bodies
+   - cors() for cross-origin resource sharing
+   - helmet() for security headers
+   - morgan() for request logging
+   - Custom errorHandler for centralized error handling
+
+Q: How are you handling errors?
+A: Centralized error handling middleware in /middleware/errorHandler.js
+   Handles PostgreSQL errors and provides appropriate HTTP status codes
+
+================================================================================
+DEPLOYMENT NOTES
+================================================================================
+
+1. Code is hosted on GitHub with regular commits
+2. Deployed to Render with PostgreSQL database
+3. Database initialized with sample data
+4. All endpoints tested and functional
+5. Application is accessible via public URL
+
+================================================================================
+WORKSHOP PARTICIPATION
+================================================================================
+
+✅ Attended Week 2 Workshop
+✅ Attended Week 3 Workshop
+✅ Ready for Sprint Review Demo
+
+================================================================================
+ADDITIONAL NOTES
+================================================================================
+
+[Add any additional notes about your project here]
+
+- All features are fully implemented and tested
+- Code follows best practices and is well-organized
+- Database relationships are properly established
+- Error handling covers edge cases
+- API is ready for frontend integration
+
+================================================================================
