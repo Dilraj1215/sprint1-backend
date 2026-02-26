@@ -15,6 +15,7 @@ npm install
 PORT=3000
 DATABASE_URL=your_postgresql_connection_string
 NODE_ENV=development
+JWT_SECRET=your_jwt_secret_key
 ```
 
 3. **Test locally:**
@@ -73,6 +74,7 @@ git push -u origin main
 4. Add Environment Variables:
    - `DATABASE_URL`: Paste the Internal Database URL from your PostgreSQL database
    - `NODE_ENV`: production
+   - `JWT_SECRET`: A strong random secret string for signing JWT tokens
 5. Click **Create Web Service**
 
 #### Initialize Database
@@ -106,7 +108,13 @@ Test endpoints:
 
 ### Endpoints
 
-#### Tasks
+#### Authentication (Public)
+```
+POST   /api/auth/register      - Register new user (returns JWT)
+POST   /api/auth/login         - Login (returns JWT)
+```
+
+#### Tasks (Protected — requires Bearer token)
 ```
 GET    /api/tasks              - Get all tasks
 GET    /api/tasks/stats        - Get task statistics
@@ -116,7 +124,7 @@ PUT    /api/tasks/:id          - Update task
 DELETE /api/tasks/:id          - Delete task
 ```
 
-#### Users
+#### Users (Protected — requires Bearer token)
 ```
 GET    /api/users              - Get all users
 GET    /api/users/:id          - Get specific user
@@ -126,7 +134,7 @@ PUT    /api/users/:id          - Update user
 DELETE /api/users/:id          - Delete user
 ```
 
-#### Categories
+#### Categories (Protected — requires Bearer token)
 ```
 GET    /api/categories         - Get all categories
 GET    /api/categories/counts  - Get categories with task counts

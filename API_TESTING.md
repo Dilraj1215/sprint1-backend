@@ -1,9 +1,53 @@
 # API Testing Guide - Postman with Render
 
 ## Base URL
-**Production (Render):** `https://sprint1-backend-xxxx.onrender.com`
+**Production (Render):** `https://sprint1-backend-xvoa.onrender.com`
 
-Replace `xxxx` with your actual Render app name. You can find this in your Render dashboard.
+---
+
+## 🔐 Authentication — Do This First!
+
+All routes except `/api/auth/register` and `/api/auth/login` are **protected** and require a JWT Bearer token.
+
+### Step 1: Register or Login to get a token
+
+#### Register (POST)
+- **Method:** `POST`
+- **URL:** `{{base_url}}/api/auth/register`
+- **Headers:** `Content-Type: application/json`
+- **Body (raw JSON):**
+```json
+{
+  "username": "john_doe",
+  "email": "john@example.com",
+  "password": "Password123!"
+}
+```
+- **Expected Status:** `201 Created`
+- **Response includes:** `token` (copy this!)
+
+#### Login (POST)
+- **Method:** `POST`
+- **URL:** `{{base_url}}/api/auth/login`
+- **Headers:** `Content-Type: application/json`
+- **Body (raw JSON):**
+```json
+{
+  "email": "john@example.com",
+  "password": "Password123!"
+}
+```
+- **Expected Status:** `200 OK`
+- **Response includes:** `token` (copy this!)
+
+### Step 2: Add token to all protected requests
+In Postman, add this header to every protected request:
+- **Key:** `Authorization`
+- **Value:** `Bearer <paste_token_here>`
+
+> The Postman collection JSON file included in the repo handles this automatically via `{{token}}` variable.
+
+---
 
 ---
 
@@ -70,11 +114,12 @@ Replace `xxxx` with your actual Render app name. You can find this in your Rende
 ---
 
 ## 👤 USER ENDPOINTS
+> All user endpoints require `Authorization: Bearer {{token}}` header.
 
 ### 1. Get All Users
 - **Method:** `GET`
 - **URL:** `{{base_url}}/api/users`
-- **Headers:** None
+- **Headers:** `Authorization: Bearer {{token}}`
 - **Body:** None
 - **Expected Status:** `200 OK`
 
@@ -222,11 +267,12 @@ Replace `xxxx` with your actual Render app name. You can find this in your Rende
 ---
 
 ## 📋 TASK ENDPOINTS
+> All task endpoints require `Authorization: Bearer {{token}}` header.
 
 ### 1. Get All Tasks
 - **Method:** `GET`
 - **URL:** `{{base_url}}/api/tasks`
-- **Headers:** None
+- **Headers:** `Authorization: Bearer {{token}}`
 - **Body:** None
 - **Expected Status:** `200 OK`
 
@@ -394,11 +440,12 @@ Replace `xxxx` with your actual Render app name. You can find this in your Rende
 ---
 
 ## 📁 CATEGORY ENDPOINTS
+> All category endpoints require `Authorization: Bearer {{token}}` header.
 
 ### 1. Get All Categories
 - **Method:** `GET`
 - **URL:** `{{base_url}}/api/categories`
-- **Headers:** None
+- **Headers:** `Authorization: Bearer {{token}}`
 - **Body:** None
 - **Expected Status:** `200 OK`
 

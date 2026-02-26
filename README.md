@@ -4,14 +4,17 @@ A RESTful API built with Node.js, Express, and PostgreSQL for managing a Task Ma
 
 ## Features
 
-- RESTful API endpoints for CRUD operations
-- PostgreSQL database integration
+- RESTful API endpoints for full CRUD operations
+- JWT authentication (register & login)
+- bcrypt password hashing — passwords never stored in plain text
+- Protected routes via JWT middleware
+- PostgreSQL database integration with foreign key relationships
 - Environment-based configuration
 - Error handling and validation
 - CORS enabled for frontend integration
 - Security headers with Helmet
 - Request logging with Morgan
-- Ready for Render deployment
+- Deployed to Render
 
 ## Tech Stack
 
@@ -19,6 +22,8 @@ A RESTful API built with Node.js, Express, and PostgreSQL for managing a Task Ma
 - **Express** - Web framework
 - **PostgreSQL** - Database
 - **pg** - PostgreSQL client
+- **bcrypt** - Password hashing
+- **jsonwebtoken** - JWT authentication
 - **dotenv** - Environment variables
 - **cors** - Cross-Origin Resource Sharing
 - **helmet** - Security headers
@@ -37,6 +42,7 @@ npm install
 PORT=3000
 DATABASE_URL=postgresql://username:password@host:port/database
 NODE_ENV=development
+JWT_SECRET=your_jwt_secret_key
 ```
 
 4. Initialize the database:
@@ -56,25 +62,35 @@ npm run dev
 
 ## API Endpoints
 
-### Tasks
+### Authentication (Public — no token required)
+
+- `POST /api/auth/register` - Register a new user (hashes password with bcrypt, returns JWT)
+- `POST /api/auth/login` - Login with email & password (returns JWT)
+
+> All routes below require `Authorization: Bearer <token>` header.
+
+### Tasks (Protected)
 
 - `GET /api/tasks` - Get all tasks
+- `GET /api/tasks/stats` - Get task statistics
 - `GET /api/tasks/:id` - Get a specific task
 - `POST /api/tasks` - Create a new task
 - `PUT /api/tasks/:id` - Update a task
 - `DELETE /api/tasks/:id` - Delete a task
 
-### Users
+### Users (Protected)
 
 - `GET /api/users` - Get all users
 - `GET /api/users/:id` - Get a specific user
+- `GET /api/users/:id/tasks` - Get user with their tasks
 - `POST /api/users` - Create a new user
 - `PUT /api/users/:id` - Update a user
 - `DELETE /api/users/:id` - Delete a user
 
-### Categories
+### Categories (Protected)
 
 - `GET /api/categories` - Get all categories
+- `GET /api/categories/counts` - Get categories with task counts
 - `GET /api/categories/:id` - Get a specific category
 - `POST /api/categories` - Create a new category
 - `PUT /api/categories/:id` - Update a category
@@ -86,6 +102,7 @@ npm run dev
 - id (SERIAL PRIMARY KEY)
 - username (VARCHAR, UNIQUE)
 - email (VARCHAR, UNIQUE)
+- password_hash (VARCHAR) — bcrypt hashed, never plain text
 - created_at (TIMESTAMP)
 
 ### Categories Table
@@ -122,8 +139,9 @@ npm run dev
 ```
 sprint1-backend/
 ├── config/
-│   └── database.js       # Database configuration
+│   └── database.js          # Database configuration (PostgreSQL pool)
 ├── controllers/
+│   ├── authController.js    # Register & login logic
 │   ├── taskController.js
 │   ├── userController.js
 │   └── categoryController.js
@@ -132,16 +150,17 @@ sprint1-backend/
 │   ├── User.js
 │   └── Category.js
 ├── routes/
+│   ├── authRoutes.js        # Public: POST /register, POST /login
 │   ├── taskRoutes.js
 │   ├── userRoutes.js
 │   └── categoryRoutes.js
-├── scripts/
-│   └── initDatabase.js   # Database initialization
 ├── middleware/
-│   └── errorHandler.js   # Error handling middleware
-├── .env.example
+│   ├── authMiddleware.js    # JWT verification (protects private routes)
+│   └── errorHandler.js     # Centralized error handling
+├── scripts/
+│   └── initDatabase.js     # Database initialization script
 ├── .gitignore
-├── server.js             # Main application file
+├── server.js               # Main application entry point
 ├── package.json
 └── README.md
 ```
