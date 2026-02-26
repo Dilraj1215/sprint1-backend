@@ -4,39 +4,34 @@ const {
   getAllUsers,
   getUserById,
   getUserWithTasks,
-  createUser,
   updateUser,
   deleteUser
 } = require('../controllers/userController');
+const { protect } = require('../middleware/authMiddleware');
 
 // @route   GET /api/users
 // @desc    Get all users
-// @access  Public
-router.get('/', getAllUsers);
+// @access  Private
+router.get('/', protect, getAllUsers);
 
 // @route   GET /api/users/:id
 // @desc    Get user by ID
-// @access  Public
-router.get('/:id', getUserById);
+// @access  Private
+router.get('/:id', protect, getUserById);
 
 // @route   GET /api/users/:id/tasks
 // @desc    Get user with their tasks
-// @access  Public
-router.get('/:id/tasks', getUserWithTasks);
-
-// @route   POST /api/users
-// @desc    Create new user
-// @access  Public
-router.post('/', createUser);
+// @access  Private
+router.get('/:id/tasks', protect, getUserWithTasks);
 
 // @route   PUT /api/users/:id
 // @desc    Update user
-// @access  Public
-router.put('/:id', updateUser);
+// @access  Private
+router.put('/:id', protect, updateUser);
 
 // @route   DELETE /api/users/:id
 // @desc    Delete user
-// @access  Public
-router.delete('/:id', deleteUser);
+// @access  Private
+router.delete('/:id', protect, deleteUser);
 
 module.exports = router;

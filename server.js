@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 
 // Import routes
+const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const userRoutes = require('./routes/userRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
@@ -30,9 +31,10 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     author: 'Dilraj Singh',
     endpoints: {
-      tasks: '/api/tasks',
-      users: '/api/users',
-      categories: '/api/categories'
+      auth: '/api/auth (register, login - Public)',
+      tasks: '/api/tasks (Protected - requires Bearer token)',
+      users: '/api/users (Protected - requires Bearer token)',
+      categories: '/api/categories (Protected - requires Bearer token)'
     }
   });
 });
@@ -47,9 +49,10 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api/tasks', taskRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/categories', categoryRoutes);
+app.use('/api/auth', authRoutes);       // Public: register & login
+app.use('/api/tasks', taskRoutes);      // Protected
+app.use('/api/users', userRoutes);      // Protected
+app.use('/api/categories', categoryRoutes); // Protected
 
 // 404 handler
 app.use((req, res) => {
@@ -69,9 +72,11 @@ app.listen(PORT, () => {
   console.log(`📡 API available at: http://localhost:${PORT}`);
   console.log(`📚 Endpoints:`);
   console.log(`   - GET  /health`);
-  console.log(`   - GET  /api/tasks`);
-  console.log(`   - GET  /api/users`);
-  console.log(`   - GET  /api/categories`);
+  console.log(`   - POST /api/auth/register  (public)`);
+  console.log(`   - POST /api/auth/login     (public)`);
+  console.log(`   - GET  /api/tasks          (protected)`);
+  console.log(`   - GET  /api/users          (protected)`);
+  console.log(`   - GET  /api/categories     (protected)`);
 });
 
 module.exports = app;
