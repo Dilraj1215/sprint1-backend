@@ -4,6 +4,7 @@ const {
   getAllUsers,
   getUserById,
   getUserWithTasks,
+  createUser,
   updateUser,
   deleteUser
 } = require('../controllers/userController');
@@ -13,6 +14,11 @@ const { protect } = require('../middleware/authMiddleware');
 // @desc    Get all users
 // @access  Private
 router.get('/', protect, getAllUsers);
+
+// @route   POST /api/users
+// @desc    Create a new user (admin use)
+// @access  Private
+router.post('/', protect, createUser);
 
 // @route   GET /api/users/:id
 // @desc    Get user by ID

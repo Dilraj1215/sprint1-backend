@@ -1,0 +1,881 @@
+{
+  "info": {
+    "name": "Sprint 1 Backend API - Dilraj Singh",
+    "_postman_id": "sprint1-backend-2026",
+    "description": "Full CRUD API for Sprint 1 Backend. Built with Node.js, Express, PostgreSQL. JWT authentication required for all protected routes.\n\n**How to use:**\n1. Run POST /auth/register or POST /auth/login\n2. Copy the token from the response\n3. The token is auto-saved to the {{token}} variable\n4. All protected requests use {{token}} automatically\n\nBase URL: https://sprint1-backend-xvoa.onrender.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://sprint1-backend-xvoa.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Welcome",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Returns welcome message and list of available endpoints."
+          },
+          "response": [
+            {
+              "name": "200 OK - Welcome",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Welcome to Sprint 1 Backend API\",\n  \"version\": \"1.0.0\",\n  \"author\": \"Dilraj Singh\",\n  \"endpoints\": {\n    \"auth\": \"/api/auth (register, login - Public)\",\n    \"tasks\": \"/api/tasks (Protected - requires Bearer token)\",\n    \"users\": \"/api/users (Protected - requires Bearer token)\",\n    \"categories\": \"/api/categories (Protected - requires Bearer token)\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Returns server health status and uptime."
+          },
+          "response": [
+            {
+              "name": "200 OK - Healthy",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"status\": \"OK\",\n  \"timestamp\": \"2026-02-26T10:00:00.000Z\",\n  \"uptime\": 3600.5\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth (Public)",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "  console.log('Token saved:', json.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"dilraj_singh\",\n  \"email\": \"dilraj@example.com\",\n  \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user. Password is hashed with bcrypt before storing. Returns a JWT token. Token is auto-saved to {{token}} variable."
+          },
+          "response": [
+            {
+              "name": "201 Created - User Registered",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"User registered successfully\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"data\": {\n    \"id\": 4,\n    \"username\": \"dilraj_singh\",\n    \"email\": \"dilraj@example.com\",\n    \"created_at\": \"2026-02-26T10:00:00.000Z\"\n  }\n}"
+            },
+            {
+              "name": "400 Bad Request - Missing Fields",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Please provide username, email, and password\"\n}"
+            },
+            {
+              "name": "409 Conflict - Email Already Exists",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"success\": false,\n  \"message\": \"User with this email already exists\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "  console.log('Token saved:', json.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password. Verifies bcrypt hash. Returns a JWT token valid for 24 hours. Token is auto-saved to {{token}} variable."
+          },
+          "response": [
+            {
+              "name": "200 OK - Login Successful",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"john_doe\",\n    \"email\": \"john@example.com\",\n    \"created_at\": \"2026-02-26T10:00:00.000Z\"\n  }\n}"
+            },
+            {
+              "name": "401 Unauthorized - Wrong Password",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid credentials\"\n}"
+            },
+            {
+              "name": "401 Unauthorized - No Token on Protected Route",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Access denied. No token provided. Please login to get a token.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users (Protected)",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Get all registered users. Requires JWT token. Password hashes are never returned."
+          },
+          "response": [
+            {
+              "name": "200 OK - All Users",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"count\": 3,\n  \"data\": [\n    { \"id\": 1, \"username\": \"john_doe\", \"email\": \"john@example.com\", \"created_at\": \"2026-02-26T10:00:00.000Z\" },\n    { \"id\": 2, \"username\": \"jane_smith\", \"email\": \"jane@example.com\", \"created_at\": \"2026-02-26T10:00:00.000Z\" },\n    { \"id\": 3, \"username\": \"bob_wilson\", \"email\": \"bob@example.com\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1"]
+            },
+            "description": "Get a single user by ID. Returns 404 if not found."
+          },
+          "response": [
+            {
+              "name": "200 OK - User Found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": 1, \"username\": \"john_doe\", \"email\": \"john@example.com\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"User not found with id: 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User with Their Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1", "tasks"]
+            },
+            "description": "Get a user along with all their associated tasks. Demonstrates the One-to-Many relationship between Users and Tasks."
+          },
+          "response": [
+            {
+              "name": "200 OK - User with Tasks",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"john_doe\",\n    \"email\": \"john@example.com\",\n    \"created_at\": \"2026-02-26T10:00:00.000Z\",\n    \"tasks\": [\n      { \"id\": 1, \"title\": \"Complete project proposal\", \"status\": \"in_progress\", \"priority\": \"high\" },\n      { \"id\": 2, \"title\": \"Team meeting\", \"status\": \"pending\", \"priority\": \"medium\" }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"new_user\",\n  \"email\": \"newuser@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Create a new user directly (admin use). Requires JWT token. Note: for self-registration use POST /api/auth/register instead (which also sets a password)."
+          },
+          "response": [
+            {
+              "name": "201 Created - User Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"User created successfully\",\n  \"data\": { \"id\": 4, \"username\": \"new_user\", \"email\": \"newuser@example.com\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n}"
+            },
+            {
+              "name": "400 Bad Request - Missing Fields",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Please provide username and email\"\n}"
+            },
+            {
+              "name": "409 Conflict - Email Exists",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"success\": false,\n  \"message\": \"User with this email already exists\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_updated\",\n  \"email\": \"john.updated@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1"]
+            },
+            "description": "Update a user's username and email by ID. Returns 404 if user does not exist."
+          },
+          "response": [
+            {
+              "name": "200 OK - User Updated",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"User updated successfully\",\n  \"data\": { \"id\": 1, \"username\": \"john_updated\", \"email\": \"john.updated@example.com\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"User not found with id: 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "3"]
+            },
+            "description": "Delete a user by ID. Returns 404 if user does not exist. Associated tasks are deleted via CASCADE."
+          },
+          "response": [
+            {
+              "name": "200 OK - User Deleted",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"User deleted successfully\",\n  \"data\": { \"id\": 3, \"username\": \"bob_wilson\", \"email\": \"bob@example.com\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"User not found with id: 999\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tasks (Protected)",
+      "item": [
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            },
+            "description": "Get all tasks with joined user and category data. Supports query filters: ?status=pending, ?priority=high, ?user_id=1, ?category_id=2"
+          },
+          "response": [
+            {
+              "name": "200 OK - All Tasks",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"count\": 10,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"title\": \"Complete project proposal\",\n      \"description\": \"Write and submit the Q1 project proposal\",\n      \"status\": \"in_progress\",\n      \"priority\": \"high\",\n      \"user_id\": 1,\n      \"category_id\": 1,\n      \"due_date\": \"2026-02-10\",\n      \"created_at\": \"2026-02-26T10:00:00.000Z\",\n      \"username\": \"john_doe\",\n      \"category_name\": \"Work\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Tasks - Filter by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            },
+            "description": "Filter tasks by status. Valid values: pending, in_progress, completed"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "stats"]
+            },
+            "description": "Get aggregate statistics for all tasks - total count, count by status, count by priority."
+          },
+          "response": [
+            {
+              "name": "200 OK - Task Statistics",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"total\": 10,\n    \"by_status\": { \"pending\": 5, \"in_progress\": 2, \"completed\": 3 },\n    \"by_priority\": { \"low\": 1, \"medium\": 4, \"high\": 5 }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Task by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "1"]
+            },
+            "description": "Get a single task by ID with joined user and category details. Returns 404 if not found."
+          },
+          "response": [
+            {
+              "name": "200 OK - Task Found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"title\": \"Complete project proposal\",\n    \"status\": \"in_progress\",\n    \"priority\": \"high\",\n    \"username\": \"john_doe\",\n    \"category_name\": \"Work\"\n  }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Task not found with id: 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Build Postman collection\",\n  \"description\": \"Create full API documentation with Postman\",\n  \"status\": \"in_progress\",\n  \"priority\": \"high\",\n  \"user_id\": 1,\n  \"category_id\": 3,\n  \"due_date\": \"2026-02-26\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            },
+            "description": "Create a new task. Title is required. Status defaults to 'pending', priority defaults to 'medium'. user_id links to Users table (FK), category_id links to Categories table (FK)."
+          },
+          "response": [
+            {
+              "name": "201 Created - Task Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Task created successfully\",\n  \"data\": {\n    \"id\": 11,\n    \"title\": \"Build Postman collection\",\n    \"description\": \"Create full API documentation with Postman\",\n    \"status\": \"in_progress\",\n    \"priority\": \"high\",\n    \"user_id\": 1,\n    \"category_id\": 3,\n    \"due_date\": \"2026-02-26\",\n    \"created_at\": \"2026-02-26T10:00:00.000Z\"\n  }\n}"
+            },
+            {
+              "name": "400 Bad Request - Missing Title",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Please provide a title for the task\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Build Postman collection\",\n  \"description\": \"Completed the full API documentation\",\n  \"status\": \"completed\",\n  \"priority\": \"high\",\n  \"user_id\": 1,\n  \"category_id\": 3,\n  \"due_date\": \"2026-02-26\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/11",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "11"]
+            },
+            "description": "Update an existing task by ID. Returns 404 if task not found. Status must be: pending, in_progress, or completed. Priority must be: low, medium, or high."
+          },
+          "response": [
+            {
+              "name": "200 OK - Task Updated",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Task updated successfully\",\n  \"data\": {\n    \"id\": 11,\n    \"title\": \"Build Postman collection\",\n    \"status\": \"completed\",\n    \"priority\": \"high\"\n  }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Task not found with id: 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/11",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "11"]
+            },
+            "description": "Delete a task by ID. Returns 404 if task not found."
+          },
+          "response": [
+            {
+              "name": "200 OK - Task Deleted",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Task deleted successfully\",\n  \"data\": { \"id\": 11, \"title\": \"Build Postman collection\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Task not found with id: 999\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Categories (Protected)",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            },
+            "description": "Get all categories."
+          },
+          "response": [
+            {
+              "name": "200 OK - All Categories",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"count\": 5,\n  \"data\": [\n    { \"id\": 1, \"name\": \"Work\", \"description\": \"Work-related tasks\", \"created_at\": \"2026-02-26T10:00:00.000Z\" },\n    { \"id\": 2, \"name\": \"Personal\", \"description\": \"Personal tasks and errands\", \"created_at\": \"2026-02-26T10:00:00.000Z\" },\n    { \"id\": 3, \"name\": \"Study\", \"description\": \"Educational and learning tasks\", \"created_at\": \"2026-02-26T10:00:00.000Z\" },\n    { \"id\": 4, \"name\": \"Health\", \"description\": \"Health and fitness related tasks\", \"created_at\": \"2026-02-26T10:00:00.000Z\" },\n    { \"id\": 5, \"name\": \"Shopping\", \"description\": \"Shopping and purchasing tasks\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Categories with Task Counts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/counts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "counts"]
+            },
+            "description": "Get all categories along with the count of tasks assigned to each category."
+          },
+          "response": [
+            {
+              "name": "200 OK - Categories with Counts",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"count\": 5,\n  \"data\": [\n    { \"id\": 1, \"name\": \"Work\", \"description\": \"Work-related tasks\", \"task_count\": 4 },\n    { \"id\": 2, \"name\": \"Personal\", \"description\": \"Personal tasks and errands\", \"task_count\": 0 },\n    { \"id\": 3, \"name\": \"Study\", \"description\": \"Educational and learning tasks\", \"task_count\": 2 }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "1"]
+            },
+            "description": "Get a single category by ID. Returns 404 if not found."
+          },
+          "response": [
+            {
+              "name": "200 OK - Category Found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": 1, \"name\": \"Work\", \"description\": \"Work-related tasks\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Category not found with id: 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Finance\",\n  \"description\": \"Budgeting and financial planning tasks\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            },
+            "description": "Create a new category. Name is required."
+          },
+          "response": [
+            {
+              "name": "201 Created - Category Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Category created successfully\",\n  \"data\": { \"id\": 6, \"name\": \"Finance\", \"description\": \"Budgeting and financial planning tasks\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n}"
+            },
+            {
+              "name": "400 Bad Request - Missing Name",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Please provide a category name\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Finance & Budgeting\",\n  \"description\": \"All money and financial planning tasks\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "6"]
+            },
+            "description": "Update an existing category by ID. Returns 404 if not found."
+          },
+          "response": [
+            {
+              "name": "200 OK - Category Updated",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Category updated successfully\",\n  \"data\": { \"id\": 6, \"name\": \"Finance & Budgeting\", \"description\": \"All money and financial planning tasks\", \"created_at\": \"2026-02-26T10:00:00.000Z\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Category not found with id: 999\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "6"]
+            },
+            "description": "Delete a category by ID. Returns 404 if not found. Tasks using this category have their category_id set to NULL (SET NULL constraint)."
+          },
+          "response": [
+            {
+              "name": "200 OK - Category Deleted",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Category deleted successfully\",\n  \"data\": { \"id\": 6, \"name\": \"Finance & Budgeting\" }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Category not found with id: 999\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,19 +1,12 @@
 const { Pool } = require('pg');
 
-// Parse the connection string manually to avoid SSL issues
-const connectionConfig = {
-  user: 'sprint1user',
-  password: '8qXspf6SbDgtu2Buz22wHMtnU48sUcvy',
-  host: 'dpg-d62bp74r85hc73digqj0-a.oregon-postgres.render.com',
-  port: 5432,
-  database: 'sprint1db',
+// Use DATABASE_URL from environment variables, with fallback for direct connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://sprint1user:8qXspf6SbDgtu2Buz22wHMtnU48sUcvy@dpg-d62bp74r85hc73digqj0-a.oregon-postgres.render.com/sprint1db',
   ssl: {
     rejectUnauthorized: false
   }
-};
-
-// Create a connection pool
-const pool = new Pool(connectionConfig);
+});
 
 // Test the database connection
 pool.on('connect', () => {

@@ -2,18 +2,16 @@ PROG2500-26W-Sec1 - Open-Source Full Stack Development
 Sprint 1 Submission
 
 Student Name: Dilraj Singh
-Student ID: [Your Student ID]
-Submission Date: February 5, 2026
+Student ID: [YOUR STUDENT ID - FILL THIS IN]
+Submission Date: February 26, 2026
 
 ================================================================================
 PROJECT LINKS
 ================================================================================
 
-GitHub Repository URL: [Your GitHub Repository URL]
-Example: https://github.com/Dilraj1215/sprint1-backend
+GitHub Repository URL: https://github.com/Dilraj1215/sprint1-backend
 
-Live Deployment URL: [Your Render Deployment URL]
-Example: https://sprint1-backend-xvoa.onrender.com
+Live Deployment URL: https://sprint1-backend-xvoa.onrender.com
 
 ================================================================================
 COMPLETED WORKSHOPS
@@ -45,7 +43,7 @@ Features:
 API ENDPOINTS
 ================================================================================
 
-Base URL: [Your Render URL]/api
+Base URL: https://sprint1-backend-xvoa.onrender.com/api
 
 Tasks:
 - GET    /tasks              - Get all tasks
