@@ -1,4 +1,5 @@
 require('dotenv').config();
+const bcrypt = require('bcrypt');
 const { pool } = require('../config/database');
 
 const initDatabase = async () => {
@@ -19,6 +20,7 @@ const initDatabase = async () => {
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -64,14 +66,24 @@ const initDatabase = async () => {
     // Insert sample data
     console.log('🔄 Inserting sample data...');
 
-    // Insert sample users
-    await pool.query(`
-      INSERT INTO users (username, email) VALUES
-      ('john_doe', 'john@example.com'),
-      ('jane_smith', 'jane@example.com'),
-      ('bob_wilson', 'bob@example.com');
-    `);
-    console.log('✅ Inserted sample users');
+    // Insert sample users with hashed passwords
+    const saltRounds = 10;
+    const hash1 = await bcrypt.hash('Password123!', saltRounds);
+    const hash2 = await bcrypt.hash('Password123!', saltRounds);
+    const hash3 = await bcrypt.hash('Password123!', saltRounds);
+
+    await pool.query(
+      `INSERT INTO users (username, email, password_hash) VALUES
+      ($1, $2, $3),
+      ($4, $5, $6),
+      ($7, $8, $9)`,
+      [
+        'john_doe',   'john@example.com',  hash1,
+        'jane_smith', 'jane@example.com',  hash2,
+        'bob_wilson', 'bob@example.com',   hash3
+      ]
+    );
+    console.log('✅ Inserted sample users (passwords hashed with bcrypt)');
 
     // Insert sample categories
     await pool.query(`
