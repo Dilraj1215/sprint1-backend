@@ -1,22 +1,21 @@
 const Task = require('../models/Task');
 
-// Get all tasks
+// Get all tasks for the logged-in user
 const getAllTasks = async (req, res, next) => {
   try {
-    const { status, priority, user_id, category_id } = req.query;
-    
+    const userId = req.user.id;
+    const { status, category_id } = req.query;
+
     let tasks;
-    
+
     if (status) {
-      tasks = await Task.findByStatus(status);
-    } else if (user_id) {
-      tasks = await Task.findByUserId(user_id);
+      tasks = await Task.findByUserAndStatus(userId, status);
     } else if (category_id) {
-      tasks = await Task.findByCategoryId(category_id);
+      tasks = await Task.findByUserAndCategory(userId, parseInt(category_id));
     } else {
-      tasks = await Task.findAll();
+      tasks = await Task.findByUserId(userId);
     }
-    
+
     res.status(200).json({
       success: true,
       count: tasks.length,
@@ -27,10 +26,10 @@ const getAllTasks = async (req, res, next) => {
   }
 };
 
-// Get task statistics
+// Get task statistics for the logged-in user
 const getTaskStatistics = async (req, res, next) => {
   try {
-    const stats = await Task.getStatistics();
+    const stats = await Task.getStatisticsByUser(req.user.id);
     res.status(200).json({
       success: true,
       data: stats
@@ -40,19 +39,19 @@ const getTaskStatistics = async (req, res, next) => {
   }
 };
 
-// Get single task
+// Get single task (must belong to the logged-in user)
 const getTaskById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const task = await Task.findById(id);
-    
-    if (!task) {
+
+    if (!task || task.user_id !== req.user.id) {
       return res.status(404).json({
         success: false,
         message: `Task not found with id: ${id}`
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: task
@@ -62,20 +61,19 @@ const getTaskById = async (req, res, next) => {
   }
 };
 
-// Create new task
+// Create new task — always belongs to the logged-in user
 const createTask = async (req, res, next) => {
   try {
-    const { title, description, status, priority, user_id, category_id, due_date } = req.body;
-    
-    // Validation
+    const { title, description, status, priority, category_id, due_date } = req.body;
+    const user_id = req.user.id;
+
     if (!title) {
       return res.status(400).json({
         success: false,
         message: 'Please provide a task title'
       });
     }
-    
-    // Validate status
+
     const validStatuses = ['pending', 'in_progress', 'completed'];
     if (status && !validStatuses.includes(status)) {
       return res.status(400).json({
@@ -83,8 +81,7 @@ const createTask = async (req, res, next) => {
         message: 'Status must be one of: pending, in_progress, completed'
       });
     }
-    
-    // Validate priority
+
     const validPriorities = ['low', 'medium', 'high'];
     if (priority && !validPriorities.includes(priority)) {
       return res.status(400).json({
@@ -92,17 +89,17 @@ const createTask = async (req, res, next) => {
         message: 'Priority must be one of: low, medium, high'
       });
     }
-    
+
     const task = await Task.create({
       title,
       description,
       status: status || 'pending',
       priority: priority || 'medium',
       user_id,
-      category_id,
-      due_date
+      category_id: category_id || null,
+      due_date: due_date || null
     });
-    
+
     res.status(201).json({
       success: true,
       message: 'Task created successfully',
@@ -113,30 +110,27 @@ const createTask = async (req, res, next) => {
   }
 };
 
-// Update task
+// Update task — must belong to the logged-in user
 const updateTask = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, description, status, priority, user_id, category_id, due_date } = req.body;
-    
-    // Validation
+    const { title, description, status, priority, category_id, due_date } = req.body;
+
     if (!title) {
       return res.status(400).json({
         success: false,
         message: 'Please provide a task title'
       });
     }
-    
-    // Check if task exists
+
     const existingTask = await Task.findById(id);
-    if (!existingTask) {
+    if (!existingTask || existingTask.user_id !== req.user.id) {
       return res.status(404).json({
         success: false,
         message: `Task not found with id: ${id}`
       });
     }
-    
-    // Validate status
+
     const validStatuses = ['pending', 'in_progress', 'completed'];
     if (status && !validStatuses.includes(status)) {
       return res.status(400).json({
@@ -144,8 +138,7 @@ const updateTask = async (req, res, next) => {
         message: 'Status must be one of: pending, in_progress, completed'
       });
     }
-    
-    // Validate priority
+
     const validPriorities = ['low', 'medium', 'high'];
     if (priority && !validPriorities.includes(priority)) {
       return res.status(400).json({
@@ -153,17 +146,17 @@ const updateTask = async (req, res, next) => {
         message: 'Priority must be one of: low, medium, high'
       });
     }
-    
+
     const task = await Task.update(id, {
       title,
       description,
       status,
       priority,
-      user_id,
-      category_id,
-      due_date
+      user_id: existingTask.user_id,
+      category_id: category_id || null,
+      due_date: due_date || null
     });
-    
+
     res.status(200).json({
       success: true,
       message: 'Task updated successfully',
@@ -174,21 +167,21 @@ const updateTask = async (req, res, next) => {
   }
 };
 
-// Delete task
+// Delete task — must belong to the logged-in user
 const deleteTask = async (req, res, next) => {
   try {
     const { id } = req.params;
-    
+
     const task = await Task.findById(id);
-    if (!task) {
+    if (!task || task.user_id !== req.user.id) {
       return res.status(404).json({
         success: false,
         message: `Task not found with id: ${id}`
       });
     }
-    
+
     await Task.delete(id);
-    
+
     res.status(200).json({
       success: true,
       message: 'Task deleted successfully',

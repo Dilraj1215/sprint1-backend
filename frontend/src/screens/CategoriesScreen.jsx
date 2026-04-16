@@ -1,32 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { categoriesAPI } from '../api/client';
 
-const INITIAL_CATS = [
-  { id: 1, name: 'Backend',  description: 'Server-side development tasks',  count: 3 },
-  { id: 2, name: 'Frontend', description: 'UI and client-side tasks',        count: 2 },
-  { id: 3, name: 'Database', description: 'Schema design and migrations',    count: 2 },
-  { id: 4, name: 'DevOps',   description: 'Deployment and infrastructure',   count: 1 },
-];
-
-const EMPTY = { name: '', description: '' };
-let nextId = 5;
+const EMPTY_FORM = { name: '', description: '' };
 
 export default function CategoriesScreen() {
-  const [cats,      setCats]      = useState(INITIAL_CATS);
+  const [cats,      setCats]      = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState('');
   const [showForm,  setShowForm]  = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData,  setFormData]  = useState(EMPTY);
+  const [formData,  setFormData]  = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
+  const [saving,    setSaving]    = useState(false);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  async function loadCategories() {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await categoriesAPI.getAllWithCounts();
+      setCats(res.data);
+    } catch (err) {
+      setError('Failed to load categories. ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const openCreate = () => {
     setEditingId(null);
-    setFormData(EMPTY);
+    setFormData(EMPTY_FORM);
     setFormError('');
     setShowForm(true);
   };
 
-  const openEdit = (c) => {
-    setEditingId(c.id);
-    setFormData({ name: c.name, description: c.description || '' });
+  const openEdit = (cat) => {
+    setEditingId(cat.id);
+    setFormData({ name: cat.name, description: cat.description || '' });
     setFormError('');
     setShowForm(true);
   };
@@ -34,43 +47,81 @@ export default function CategoriesScreen() {
   const closeForm = () => {
     setShowForm(false);
     setEditingId(null);
-    setFormData(EMPTY);
+    setFormData(EMPTY_FORM);
     setFormError('');
   };
 
   const handleChange = (e) =>
-    setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) { setFormError('Name is required'); return; }
-    if (editingId) {
-      setCats(p => p.map(c => c.id === editingId ? { ...c, ...formData } : c));
-    } else {
-      setCats(p => [...p, { id: nextId++, count: 0, ...formData }]);
+    if (!formData.name.trim()) {
+      setFormError('Name is required.');
+      return;
     }
-    closeForm();
+    setSaving(true);
+    setFormError('');
+    try {
+      const payload = {
+        name:        formData.name.trim(),
+        description: formData.description.trim(),
+      };
+      if (editingId) {
+        const res = await categoriesAPI.update(editingId, payload);
+        setCats((prev) =>
+          prev.map((c) => (c.id === editingId ? { ...res.data, tasks_count: c.tasks_count } : c))
+        );
+      } else {
+        const res = await categoriesAPI.create(payload);
+        setCats((prev) => [...prev, { ...res.data, tasks_count: 0 }]);
+      }
+      closeForm();
+    } catch (err) {
+      setFormError(err.message || 'Failed to save category.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm('Delete this category?')) return;
-    setCats(p => p.filter(c => c.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this category? Tasks in it will lose their category.')) return;
+    try {
+      await categoriesAPI.delete(id);
+      setCats((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      alert('Failed to delete category: ' + err.message);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="loading-screen">Loading categories...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
       <header className="page-header">
         <div>
           <h1 className="page-title">Categories</h1>
-          <p className="page-subtitle">{cats.length} categor{cats.length !== 1 ? 'ies' : 'y'}</p>
+          <p className="page-subtitle">
+            {cats.length} categor{cats.length !== 1 ? 'ies' : 'y'}
+          </p>
         </div>
         <button className="btn-primary" onClick={openCreate}>New category</button>
       </header>
 
+      {error && <div className="form-error" style={{ margin: '0 0 16px' }}>{error}</div>}
+
       {showForm && (
         <div className="form-panel">
           <div className="form-panel-header">
-            <h2 className="form-panel-title">{editingId ? 'Edit category' : 'New category'}</h2>
+            <h2 className="form-panel-title">
+              {editingId ? 'Edit category' : 'New category'}
+            </h2>
             <button className="btn-ghost" onClick={closeForm}>Cancel</button>
           </div>
           {formError && <div className="form-error">{formError}</div>}
@@ -99,8 +150,8 @@ export default function CategoriesScreen() {
               />
             </div>
             <div className="form-actions">
-              <button type="submit" className="btn-primary">
-                {editingId ? 'Update category' : 'Create category'}
+              <button type="submit" className="btn-primary" disabled={saving}>
+                {saving ? 'Saving...' : editingId ? 'Update category' : 'Create category'}
               </button>
             </div>
           </form>
@@ -110,7 +161,9 @@ export default function CategoriesScreen() {
       {cats.length === 0 ? (
         <div className="empty-state">
           <p>No categories yet.</p>
-          <button className="btn-primary" onClick={openCreate}>Add your first category</button>
+          <button className="btn-primary" onClick={openCreate}>
+            Add your first category
+          </button>
         </div>
       ) : (
         <table className="data-table">
@@ -123,14 +176,21 @@ export default function CategoriesScreen() {
             </tr>
           </thead>
           <tbody>
-            {cats.map(c => (
+            {cats.map((c) => (
               <tr key={c.id}>
                 <td className="td-main">{c.name}</td>
                 <td className="td-muted">{c.description || '—'}</td>
-                <td className="td-muted">{c.count}</td>
+                <td className="td-muted">{c.tasks_count}</td>
                 <td className="td-actions">
-                  <button className="action-btn" onClick={() => openEdit(c)}>Edit</button>
-                  <button className="action-btn action-btn-danger" onClick={() => handleDelete(c.id)}>Delete</button>
+                  <button className="action-btn" onClick={() => openEdit(c)}>
+                    Edit
+                  </button>
+                  <button
+                    className="action-btn action-btn-danger"
+                    onClick={() => handleDelete(c.id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}

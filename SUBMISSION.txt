@@ -1,9 +1,9 @@
 PROG2500-26W-Sec1 - Open-Source Full Stack Development
-Sprint 1 Submission
+Sprint 3 Submission
 
 Student Name: Dilraj Singh
-Student ID: [YOUR STUDENT ID - FILL THIS IN]
-Submission Date: February 26, 2026
+Student Number: 9047655
+Submission Date: April 16, 2026
 
 ================================================================================
 PROJECT LINKS
@@ -14,30 +14,48 @@ GitHub Repository URL: https://github.com/Dilraj1215/sprint1-backend
 Live Deployment URL: https://sprint1-backend-xvoa.onrender.com
 
 ================================================================================
-COMPLETED WORKSHOPS
+COMPLETED SPRINTS
 ================================================================================
 
-Sprint 1 includes the following workshops from Weeks 2 and 3:
-✅ Week 2: Node.js Setup & Express Basics
-✅ Week 3: Database Integration with PostgreSQL
+Sprint 1 (Backend — Weeks 2 & 3):
+  Express + Node.js REST API, PostgreSQL database, JWT authentication,
+  full CRUD for Tasks, Users, and Categories. Deployed on Render.
+
+Sprint 2 (Frontend — Weeks 9 & 10):
+  React SPA built with Vite. Login, Register, Dashboard, Tasks, Categories
+  screens. Component-based architecture with React Router for client-side
+  routing and a shared layout (sidebar + shell).
+
+Sprint 3 (Integration — Weeks 12 & 13):
+  Full API integration: all screens now fetch real data from the backend.
+  Auth uses real HTTP requests (JWT stored in localStorage). Added Profile
+  page. Backend serves the built React app. Deployed as a single unified
+  full-stack application.
 
 ================================================================================
-PROJECT OVERVIEW
+SPRINT 3 CHANGES (Integration)
 ================================================================================
 
-This is a RESTful API backend built with:
-- Node.js & Express.js
-- PostgreSQL Database
-- Deployed on Render
+Backend:
+  - Task controller updated to scope all queries to the logged-in user
+    (req.user.id from the JWT) — each user only sees their own tasks
+  - Added user-scoped statistics endpoint (/api/tasks/stats)
+  - Express now serves the built React frontend via express.static
+  - Added catch-all route so React Router's client-side paths work on refresh
+  - package.json build script: cd frontend && npm install && npm run build
 
-Features:
-- Complete CRUD operations for Tasks, Users, and Categories
-- RESTful API design
-- PostgreSQL database with relationships
-- Error handling and validation
-- CORS enabled for frontend integration
-- Environment-based configuration
-- Deployed to live public URL
+Frontend:
+  - AuthProvider wired to real API: login/register make actual HTTP requests
+  - LoginScreen and RegisterScreen updated with async/await and loading state
+  - DashboardScreen: fetches real task stats, recent tasks, and categories
+  - TasksScreen: full CRUD against /api/tasks — create, read, update, delete
+  - CategoriesScreen: full CRUD against /api/categories with task counts
+  - ProfileScreen: new page — update username and email via /api/users/:id
+  - App.jsx: added /profile route
+  - Sidebar: added Profile nav link
+  - vite.config.js: proxy /api to local backend during development
+  - api/client.js: BASE_URL changed to /api (relative) — works in dev via
+    Vite proxy and in production because Express serves both on same origin
 
 ================================================================================
 API ENDPOINTS
@@ -45,112 +63,89 @@ API ENDPOINTS
 
 Base URL: https://sprint1-backend-xvoa.onrender.com/api
 
-Tasks:
-- GET    /tasks              - Get all tasks
-- GET    /tasks/stats        - Get statistics
-- GET    /tasks/:id          - Get specific task
-- POST   /tasks              - Create task
-- PUT    /tasks/:id          - Update task
-- DELETE /tasks/:id          - Delete task
+Auth (public):
+  POST   /auth/register        Create account, returns JWT
+  POST   /auth/login           Login, returns JWT
 
-Users:
-- GET    /users              - Get all users
-- GET    /users/:id          - Get specific user
-- GET    /users/:id/tasks    - Get user with tasks
-- POST   /users              - Create user
-- PUT    /users/:id          - Update user
-- DELETE /users/:id          - Delete user
+Tasks (JWT required — scoped to logged-in user):
+  GET    /tasks                Get all tasks for this user
+  GET    /tasks/stats          Get task statistics for this user
+  GET    /tasks/:id            Get one task
+  POST   /tasks                Create task
+  PUT    /tasks/:id            Update task
+  DELETE /tasks/:id            Delete task
 
-Categories:
-- GET    /categories         - Get all categories
-- GET    /categories/counts  - Get with task counts
-- GET    /categories/:id     - Get specific category
-- POST   /categories         - Create category
-- PUT    /categories/:id     - Update category
-- DELETE /categories/:id     - Delete category
+Users (JWT required):
+  GET    /users                List all users
+  GET    /users/:id            Get user by ID
+  PUT    /users/:id            Update username/email
 
-================================================================================
-DATABASE SCHEMA
-================================================================================
-
-Users Table:
-- id (Primary Key)
-- username (Unique)
-- email (Unique)
-- created_at
-
-Categories Table:
-- id (Primary Key)
-- name
-- description
-- created_at
-
-Tasks Table:
-- id (Primary Key)
-- title
-- description
-- status (pending/in_progress/completed)
-- priority (low/medium/high)
-- user_id (Foreign Key → users)
-- category_id (Foreign Key → categories)
-- due_date
-- created_at
-- updated_at
+Categories (JWT required):
+  GET    /categories           Get all categories
+  GET    /categories/counts    Get categories with task counts
+  GET    /categories/:id       Get one category
+  POST   /categories           Create category
+  PUT    /categories/:id       Update category
+  DELETE /categories/:id       Delete category
 
 ================================================================================
-TECHNICAL QUESTIONS - PREPARATION
+FRONTEND VIEWS
 ================================================================================
 
-Q: Where did you define your routes?
-A: Routes are defined in the /routes directory:
-   - taskRoutes.js
-   - userRoutes.js
-   - categoryRoutes.js
-   These are imported and used in server.js
-
-Q: How does the database connection work?
-A: Database connection is configured in /config/database.js using the pg Pool
-   The connection string is stored in environment variable DATABASE_URL
-
-Q: What middleware are you using?
-A: - express.json() for parsing JSON request bodies
-   - cors() for cross-origin resource sharing
-   - helmet() for security headers
-   - morgan() for request logging
-   - Custom errorHandler for centralized error handling
-
-Q: How are you handling errors?
-A: Centralized error handling middleware in /middleware/errorHandler.js
-   Handles PostgreSQL errors and provides appropriate HTTP status codes
+/login        Login page
+/register     Register page
+/dashboard    Overview — stats, recent tasks, category summary
+/tasks        Full task management (create, edit, delete, filter by status)
+/categories   Category management (create, edit, delete)
+/profile      Update username and email
 
 ================================================================================
-DEPLOYMENT NOTES
+TECHNICAL QUESTIONS — PREPARATION
 ================================================================================
 
-1. Code is hosted on GitHub with regular commits
-2. Deployed to Render with PostgreSQL database
-3. Database initialized with sample data
-4. All endpoints tested and functional
-5. Application is accessible via public URL
+Q: Where are your API routes defined?
+A: In /routes/ — authRoutes.js, taskRoutes.js, userRoutes.js, categoryRoutes.js.
+   Imported and mounted in server.js under /api/*.
+
+Q: How does the frontend connect to the backend?
+A: frontend/src/api/client.js has a fetch-based request() helper that
+   attaches the Bearer token from localStorage. All screens import from
+   this file. In development the Vite proxy forwards /api to port 3000;
+   in production Express serves both on the same origin.
+
+Q: How is authentication handled?
+A: POST /api/auth/login returns a JWT. The token is stored in localStorage
+   and sent as an Authorization: Bearer header on every protected request.
+   The protect middleware in middleware/authMiddleware.js verifies the token
+   and attaches req.user so controllers know which user is acting.
+
+Q: How is user data scoped?
+A: The task controller reads req.user.id (from the decoded JWT) instead of
+   trusting the request body. Task.findByUserId(), Task.findByUserAndStatus(),
+   and Task.getStatisticsByUser() all filter with WHERE user_id = $1.
+
+Q: How is the frontend deployed alongside the backend?
+A: npm run build (in the root) runs: cd frontend && npm install && npm run build
+   This creates frontend/dist/. server.js uses express.static to serve those
+   files. A wildcard GET * route sends index.html so React Router works on
+   page refresh.
+
+================================================================================
+DEPLOYMENT
+================================================================================
+
+Platform: Render
+  Backend URL: https://sprint1-backend-xvoa.onrender.com
+  Build command: npm install && npm run build
+  Start command: npm start
+  Database: PostgreSQL on Render (same account)
 
 ================================================================================
 WORKSHOP PARTICIPATION
 ================================================================================
 
-✅ Attended Week 2 Workshop
-✅ Attended Week 3 Workshop
-✅ Ready for Sprint Review Demo
-
-================================================================================
-ADDITIONAL NOTES
-================================================================================
-
-[Add any additional notes about your project here]
-
-- All features are fully implemented and tested
-- Code follows best practices and is well-organized
-- Database relationships are properly established
-- Error handling covers edge cases
-- API is ready for frontend integration
+  Sprint 1: Attended Week 2 and Week 3 workshops
+  Sprint 2: Attended Week 9 and Week 10 workshops
+  Sprint 3: Attended Week 12 and Week 13 workshops
 
 ================================================================================

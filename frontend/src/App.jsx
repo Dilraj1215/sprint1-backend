@@ -6,6 +6,7 @@ import RegisterScreen from './screens/RegisterScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import TasksScreen from './screens/TasksScreen';
 import CategoriesScreen from './screens/CategoriesScreen';
+import ProfileScreen from './screens/ProfileScreen';
 
 export default function App() {
   return (
@@ -13,14 +14,15 @@ export default function App() {
       <AuthProvider>
         <Routes>
           {/* Public routes */}
-          <Route path="/login" element={<LoginScreen />} />
+          <Route path="/login"    element={<LoginScreen />} />
           <Route path="/register" element={<RegisterScreen />} />
 
           {/* Protected routes — rendered inside the Shell layout */}
           <Route element={<Shell />}>
-            <Route path="/dashboard" element={<DashboardScreen />} />
-            <Route path="/tasks" element={<TasksScreen />} />
+            <Route path="/dashboard"  element={<DashboardScreen />} />
+            <Route path="/tasks"      element={<TasksScreen />} />
             <Route path="/categories" element={<CategoriesScreen />} />
+            <Route path="/profile"    element={<ProfileScreen />} />
           </Route>
 
           {/* Default redirect */}

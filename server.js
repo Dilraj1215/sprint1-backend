@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -13,70 +14,83 @@ const categoryRoutes = require('./routes/categoryRoutes');
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 
-// Initialize express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(helmet()); // Security headers
-app.use(cors()); // Enable CORS
-app.use(morgan('dev')); // Request logging
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+// Security headers — relax CSP so the React SPA can load its own scripts/styles
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Welcome to Sprint 1 Backend API',
-    version: '1.0.0',
-    author: 'Dilraj Singh',
-    endpoints: {
-      auth: '/api/auth (register, login - Public)',
-      tasks: '/api/tasks (Protected - requires Bearer token)',
-      users: '/api/users (Protected - requires Bearer token)',
-      categories: '/api/categories (Protected - requires Bearer token)'
-    }
-  });
-});
+// CORS — allow all origins so the frontend can reach the API regardless of host
+app.use(cors());
 
-// Health check endpoint
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve the built React frontend as static files
+const frontendDist = path.join(__dirname, 'frontend', 'dist');
+app.use(express.static(frontendDist));
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/categories', categoryRoutes);
+
+// Health check
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);       // Public: register & login
-app.use('/api/tasks', taskRoutes);      // Protected
-app.use('/api/users', userRoutes);      // Protected
-app.use('/api/categories', categoryRoutes); // Protected
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Not Found',
-    message: `Cannot ${req.method} ${req.path}` 
+// Root info endpoint (only reached if no index.html is present)
+app.get('/', (req, res) => {
+  res.json({
+    message: 'TaskFlow API',
+    version: '1.0.0',
+    author: 'Dilraj Singh',
+    endpoints: {
+      auth: '/api/auth (register, login)',
+      tasks: '/api/tasks (JWT protected)',
+      users: '/api/users (JWT protected)',
+      categories: '/api/categories (JWT protected)'
+    }
   });
 });
 
-// Error handling middleware (must be last)
+// Catch-all: for any non-API route send the React app so client-side routing works
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(frontendDist, 'index.html'), (err) => {
+    if (err) {
+      // Frontend not built yet — just send a plain message
+      res.status(200).send('API is running. Build the frontend to serve the UI.');
+    }
+  });
+});
+
+// 404 for unmatched API routes
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Cannot ${req.method} ${req.path}`
+  });
+});
+
+// Centralised error handler (must be last)
 app.use(errorHandler);
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📡 API available at: http://localhost:${PORT}`);
-  console.log(`📚 Endpoints:`);
-  console.log(`   - GET  /health`);
-  console.log(`   - POST /api/auth/register  (public)`);
-  console.log(`   - POST /api/auth/login     (public)`);
-  console.log(`   - GET  /api/tasks          (protected)`);
-  console.log(`   - GET  /api/users          (protected)`);
-  console.log(`   - GET  /api/categories     (protected)`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`API: http://localhost:${PORT}/api`);
 });
 
 module.exports = app;

@@ -10,17 +10,22 @@ export default function Sidebar() {
     navigate('/login');
   };
 
+  const linkClass = ({ isActive }) => (isActive ? 'nav-link active' : 'nav-link');
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
         <span className="brand-mark">TF</span>
         <span className="brand-name">TaskFlow</span>
       </div>
+
       <nav className="sidebar-nav">
-        <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Overview</NavLink>
-        <NavLink to="/tasks"     className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Tasks</NavLink>
-        <NavLink to="/categories" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Categories</NavLink>
+        <NavLink to="/dashboard"  className={linkClass}>Overview</NavLink>
+        <NavLink to="/tasks"      className={linkClass}>Tasks</NavLink>
+        <NavLink to="/categories" className={linkClass}>Categories</NavLink>
+        <NavLink to="/profile"    className={linkClass}>Profile</NavLink>
       </nav>
+
       <div className="sidebar-footer">
         {user && (
           <>

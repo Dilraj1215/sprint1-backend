@@ -1,4 +1,6 @@
-const BASE_URL = 'https://sprint1-backend-xvoa.onrender.com/api';
+// Base URL: use relative path so the same code works both in dev (via Vite proxy)
+// and in production (Express serves both API and frontend on the same origin).
+const BASE_URL = '/api';
 
 function getToken() {
   return localStorage.getItem('token');
@@ -50,4 +52,6 @@ export const categoriesAPI = {
 // Users
 export const usersAPI = {
   getAll: () => request('/users'),
+  getById: (id) => request(`/users/${id}`),
+  update: (id, body) => request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
 };

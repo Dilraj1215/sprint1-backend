@@ -1,10 +1,10 @@
 const { query } = require('../config/database');
 
 class Task {
-  // Get all tasks
+  // Get all tasks (no user filter — admin use)
   static async findAll() {
     const result = await query(`
-      SELECT 
+      SELECT
         t.*,
         u.username,
         u.email,
@@ -20,7 +20,7 @@ class Task {
   // Get task by ID
   static async findById(id) {
     const result = await query(`
-      SELECT 
+      SELECT
         t.*,
         u.username,
         u.email,
@@ -33,10 +33,10 @@ class Task {
     return result.rows[0];
   }
 
-  // Get tasks by user ID
+  // Get all tasks belonging to a specific user
   static async findByUserId(userId) {
     const result = await query(`
-      SELECT 
+      SELECT
         t.*,
         c.name as category_name
       FROM tasks t
@@ -47,10 +47,38 @@ class Task {
     return result.rows;
   }
 
-  // Get tasks by category ID
+  // Get tasks for a user filtered by status
+  static async findByUserAndStatus(userId, status) {
+    const result = await query(`
+      SELECT
+        t.*,
+        c.name as category_name
+      FROM tasks t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1 AND t.status = $2
+      ORDER BY t.created_at DESC
+    `, [userId, status]);
+    return result.rows;
+  }
+
+  // Get tasks for a user filtered by category
+  static async findByUserAndCategory(userId, categoryId) {
+    const result = await query(`
+      SELECT
+        t.*,
+        c.name as category_name
+      FROM tasks t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1 AND t.category_id = $2
+      ORDER BY t.created_at DESC
+    `, [userId, categoryId]);
+    return result.rows;
+  }
+
+  // Get tasks by category ID (no user filter)
   static async findByCategoryId(categoryId) {
     const result = await query(`
-      SELECT 
+      SELECT
         t.*,
         u.username,
         u.email
@@ -62,10 +90,10 @@ class Task {
     return result.rows;
   }
 
-  // Get tasks by status
+  // Get tasks by status (no user filter)
   static async findByStatus(status) {
     const result = await query(`
-      SELECT 
+      SELECT
         t.*,
         u.username,
         c.name as category_name
@@ -82,10 +110,10 @@ class Task {
   static async create(taskData) {
     const { title, description, status, priority, user_id, category_id, due_date } = taskData;
     const result = await query(
-      `INSERT INTO tasks (title, description, status, priority, user_id, category_id, due_date) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      `INSERT INTO tasks (title, description, status, priority, user_id, category_id, due_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [title, description, status || 'pending', priority || 'medium', user_id, category_id, due_date]
+      [title, description, status || 'pending', priority || 'medium', user_id, category_id || null, due_date || null]
     );
     return result.rows[0];
   }
@@ -94,12 +122,12 @@ class Task {
   static async update(id, taskData) {
     const { title, description, status, priority, user_id, category_id, due_date } = taskData;
     const result = await query(
-      `UPDATE tasks 
-       SET title = $1, description = $2, status = $3, priority = $4, 
+      `UPDATE tasks
+       SET title = $1, description = $2, status = $3, priority = $4,
            user_id = $5, category_id = $6, due_date = $7, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $8 
+       WHERE id = $8
        RETURNING *`,
-      [title, description, status, priority, user_id, category_id, due_date, id]
+      [title, description, status, priority, user_id, category_id || null, due_date || null, id]
     );
     return result.rows[0];
   }
@@ -110,10 +138,10 @@ class Task {
     return result.rows[0];
   }
 
-  // Get task statistics
+  // Get task statistics across all tasks
   static async getStatistics() {
     const result = await query(`
-      SELECT 
+      SELECT
         COUNT(*) as total_tasks,
         COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_tasks,
         COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_tasks,
@@ -123,6 +151,23 @@ class Task {
         COUNT(CASE WHEN priority = 'low' THEN 1 END) as low_priority_tasks
       FROM tasks
     `);
+    return result.rows[0];
+  }
+
+  // Get task statistics for a specific user
+  static async getStatisticsByUser(userId) {
+    const result = await query(`
+      SELECT
+        COUNT(*) as total_tasks,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_tasks,
+        COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_tasks,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_tasks,
+        COUNT(CASE WHEN priority = 'high' THEN 1 END) as high_priority_tasks,
+        COUNT(CASE WHEN priority = 'medium' THEN 1 END) as medium_priority_tasks,
+        COUNT(CASE WHEN priority = 'low' THEN 1 END) as low_priority_tasks
+      FROM tasks
+      WHERE user_id = $1
+    `, [userId]);
     return result.rows[0];
   }
 }

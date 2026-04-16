@@ -5,19 +5,24 @@ import { useAuth } from '../providers/AuthProvider';
 export default function LoginScreen() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSubmitting(true);
     try {
-      login(formData.email, formData.password);
+      await login(formData.email, formData.password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -30,23 +35,46 @@ export default function LoginScreen() {
             <span className="brand-name">TaskFlow</span>
           </div>
           <h1 className="auth-title">Sign in</h1>
-          <p className="auth-subtitle">Enter any email and password to continue</p>
+          <p className="auth-subtitle">Welcome back — sign in to continue</p>
         </div>
+
         {error && <div className="form-error">{error}</div>}
+
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="field">
             <label className="field-label" htmlFor="email">Email address</label>
-            <input id="email" name="email" type="email" className="field-input"
-              value={formData.email} onChange={handleChange} placeholder="you@example.com" required />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              className="field-input"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              required
+            />
           </div>
           <div className="field">
             <label className="field-label" htmlFor="password">Password</label>
-            <input id="password" name="password" type="password" className="field-input"
-              value={formData.password} onChange={handleChange} placeholder="password123" required />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              className="field-input"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Min. 6 characters"
+              required
+            />
           </div>
-          <button type="submit" className="btn-primary">Sign in</button>
+          <button type="submit" className="btn-primary" disabled={submitting}>
+            {submitting ? 'Signing in...' : 'Sign in'}
+          </button>
         </form>
-        <p className="auth-switch">No account? <Link to="/register">Create one</Link></p>
+
+        <p className="auth-switch">
+          No account? <Link to="/register">Create one</Link>
+        </p>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -6,34 +7,45 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Restore session from localStorage on first load
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) setUser(JSON.parse(stored));
+    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser));
+    }
     setLoading(false);
   }, []);
 
-  const login = (email, password) => {
-    if (!email || !password) throw new Error('Please fill in all fields');
-    const u = { username: email.split('@')[0], email };
-    localStorage.setItem('user', JSON.stringify(u));
-    setUser(u);
+  const login = async (email, password) => {
+    const res = await authAPI.login({ email, password });
+    // res = { success, message, token, data: { id, username, email, created_at } }
+    localStorage.setItem('token', res.token);
+    localStorage.setItem('user', JSON.stringify(res.data));
+    setUser(res.data);
   };
 
-  const register = (username, email, password) => {
-    if (!username || !email || !password) throw new Error('Please fill in all fields');
-    if (password.length < 6) throw new Error('Password must be at least 6 characters');
-    const u = { username, email };
-    localStorage.setItem('user', JSON.stringify(u));
-    setUser(u);
+  const register = async (username, email, password) => {
+    const res = await authAPI.register({ username, email, password });
+    localStorage.setItem('token', res.token);
+    localStorage.setItem('user', JSON.stringify(res.data));
+    setUser(res.data);
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
   };
 
+  // Called after a successful profile update to keep context in sync
+  const updateUser = (updatedUser) => {
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
