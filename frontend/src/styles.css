@@ -797,3 +797,46 @@ a:hover {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ============================================================
+   404 NOT FOUND PAGE
+   ============================================================ */
+
+.not-found-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+}
+
+.not-found-box {
+  text-align: center;
+  max-width: 420px;
+}
+
+.not-found-code {
+  display: block;
+  font-size: 96px;
+  font-weight: 200;
+  letter-spacing: -0.04em;
+  color: var(--border-dark);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.not-found-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.not-found-msg {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}

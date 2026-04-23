@@ -7,12 +7,15 @@ import DashboardScreen from './screens/DashboardScreen';
 import TasksScreen from './screens/TasksScreen';
 import CategoriesScreen from './screens/CategoriesScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import NotFoundScreen from './screens/NotFoundScreen';
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
           {/* Public routes */}
           <Route path="/login"    element={<LoginScreen />} />
           <Route path="/register" element={<RegisterScreen />} />
@@ -25,8 +28,8 @@ export default function App() {
             <Route path="/profile"    element={<ProfileScreen />} />
           </Route>
 
-          {/* Default redirect */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* 404 — catch all unmatched routes */}
+          <Route path="*" element={<NotFoundScreen />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
